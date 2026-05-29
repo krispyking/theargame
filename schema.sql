@@ -37,7 +37,7 @@ create table if not exists moves (
 );
 
 create index if not exists idx_games_status on games(status);
-create index if not exists idx_moves_game_id on moves(gsme_id);
+create index if not exists idx_moves_game_id on moves(game_id);
 
 alter publication supabase_realtime add table games;
 alter publication supabase_realtime add table moves;
