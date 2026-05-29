@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The AR Game — Connect 4</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- A-Frame WebXR -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+    <div id="lobby" class="panel">
+      <h1>🎮 �The AR Game</h1>
+      <p>Location-based AR Connect 4</p>
+      <input id="username-input" type="text" placeholder="Your name" maxlength="20" />
+      <button id="btn-create">Create Game</button>
+      <button id="btn-join">Join Game</button>
+      <div id="join-section" style="display:none">
+        <input id="game-id-input" type="text" placeholder="Paste Game ID" />
+        <button id="btn-join-confirm">Join →</button>
+      </div>
+    </div>
+
+    <div id="waiting" class="panel" style="display:none">
+      <h2>❕ Waiting for opponent...</h2>
+      <p>Share this Game ID:</p>
+      <div id="share-game-id" class="code-box"></div>
+      <button id="btn-copy">Copy ID</button>
+    </div>
+
+    <div id="status-bar" style="display:none">
+      <span id="turn-indicator"></span>
+      <span id="score-indicator"></span>
+    </div>
+
+    <div id="win-screen" class="panel" style="display:none">
+      <h2 id="win-message"></h2>
+      <button id="btn-new-game">New Game</button>
+    </div>
+  </div>
+
+  <!-- A-Frame Scene -->
+  <a-scene
+    id="ar-scene"
+    embedded
+    renderer="antialias: true; colorManagement: true;"
+    background="color: #0a0a1a"
+  >
+
+    <!-- Assets -->
+    <a-assets>
+      <a-mixin id="red-piece"
+        geometry="primitive: cylinder; radius: 0.42; height: 0.15; segmentsRadial: 32"
+        material="color: #e63946; roughness: 0.3; metalness: 0.4; emissive: #e63946; emissiveIntensity: 0.15"
+      ></a-mixin>
+      <a-mixin id="yellow-piece"
+        geometry="primitive: cylinder; radius: 0.42; height: 0.15; segmentsRadial: 32"
+        material="color: #ffd60a; roughness: 0.3; metalness: 0.4; emissive: #ffd60a; emissiveIntensity: 0.15"
+      ></a-mixin>
+    </a-assets>
+
+    <!-- Lighting -->
+    <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="0.8" position="2 4 3"></a-light>
+    <a-light type="point" color="#457b9d" intensity="0.6" position="-3 3 0"></a-light>
+
+    <!-- Camera -->
+    <a-entity id="camera-rig" position="0 0 7">
+      <a-camera look-controls wasd-controls="enabled: false">
+        <a-cursor
+          fuse="false"
+          raycaster="objects: .column-hitbox"
+          color="#ffffff"
+          opacity="0.8"
+        ></a-cursor>
+      </a-camera>
+    </a-entity>
+
+    <!-- Game Board Container -->
+    <a-entity id="board-root" position="0 0 0"></a-entity>
+
+  </a-scene>
+
+  <script src="game.js"></script>
+</body>
+</html>
