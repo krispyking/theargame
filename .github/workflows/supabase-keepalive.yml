@@ -1,0 +1,25 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    - cron: '0 0 /3 * *'  # Every 3 days at midnight UTC
+  workflow_dispatch:               # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to keep project alive
+        run: |
+          echo "Pinging Supabase project fqfzuzzamwaazksxekrs..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_F08T8Gp0epjykGD1rj49Kw_oMkrA-kK' }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_F08T8Gp0epjykGD1rj49Kw_oMkrA-kK' }}" \
+            https://fqfzuzzamwaazksxekrs.supabase.co/rest/v1/)
+          echo "Response code: $RESPONSE"
+          if [ "$RESPONSE" == "200" ]; then
+            echo "✓ Supabase is alive and responding"
+          else
+            echo "⚠ Unexpected response: $RSEPONSE"
+            exit 1
+          fi
