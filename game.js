@@ -210,15 +210,26 @@
       boardRoot.removeChild(boardRoot.firstChild);
     }
 
+    // Board background panel
+    var boardW = COLS * CELL_W + 0.6;
+    var boardH = ROWS * CELL_H + 0.6;
+    var bg = document.createElement('a-plane');
+    bg.setAttribute('width', boardW);
+    bg.setAttribute('height', boardH);
+    bg.setAttribute('position', '0 0 ' + (BOARD_Z - 0.07));
+    bg.setAttribute('color', '#3d1a78');
+    bg.setAttribute('opacity', 0.95);
+    boardRoot.appendChild(bg);
+
     // Slot cylinders
     for (var row = 0; row < ROWS; row++) {
       for (var col = 0; col < COLS; col++) {
         var slot = document.createElement('a-cylinder');
         slot.setAttribute('radius', 0.4);
-        slot.setAttribute('height', 0.12);
+        slot.setAttribute('height', 0.15);
         slot.setAttribute('segments-radial', 24);
-        slot.setAttribute('color', '#222222');
-        slot.setAttribute('opacity', 0.75);
+        slot.setAttribute('color', '#0d0617');
+        slot.setAttribute('opacity', 0.9);
         slot.setAttribute('transparent', 'true');
         slot.setAttribute('rotation', '90 0 0');
 
