@@ -48,17 +48,14 @@
       var el = document.getElementById(id);
       if (el) el.style.display = (id === name) ? 'block' : 'none';
     });
-    // Show/hide status bar and AR board
+    // Show/hide status bar, AR root, and 2D board
     var statusBar = document.getElementById('status-bar');
     var boardRoot = document.getElementById('board-root');
-    if (name === null) {
-      // in-game
-      if (statusBar) statusBar.style.display = 'flex';
-      if (boardRoot) boardRoot.setAttribute('visible', 'true');
-    } else {
-      if (statusBar) statusBar.style.display = 'none';
-      if (boardRoot) boardRoot.setAttribute('visible', name !== 'lobby' && name !== 'waiting' ? 'true' : 'false');
-    }
+    var gameBoard = document.getElementById('game-board');
+    var inGame = (name === null);
+    if (statusBar) statusBar.style.display = inGame ? 'flex' : 'none';
+    if (boardRoot) boardRoot.setAttribute('visible', (inGame || (name !== 'lobby' && name !== 'waiting')) ? 'true' : 'false');
+    if (gameBoard) gameBoard.style.display = (inGame || (name !== 'lobby' && name !== 'waiting')) ? 'grid' : 'none';
   }
 
   function setLobbyError(msg) {
@@ -200,73 +197,24 @@
     subscribeToMoves();
   }
 
-  // ─── 3D board building ─────────────────────────────────────────────────────
+  // ─── Board building ────────────────────────────────────────────────────────
   function buildBoard() {
-    var boardRoot = document.getElementById('board-root');
-    if (!boardRoot) return;
+    var gameBoard = document.getElementById('game-board');
+    if (!gameBoard) return;
 
-    // Clear existing children
-    while (boardRoot.firstChild) {
-      boardRoot.removeChild(boardRoot.firstChild);
-    }
-
-    // Board background panel
-    var boardW = COLS * CELL_W + 0.6;
-    var boardH = ROWS * CELL_H + 0.6;
-    var bg = document.createElement('a-plane');
-    bg.setAttribute('width', boardW);
-    bg.setAttribute('height', boardH);
-    bg.setAttribute('position', '0 0 ' + (BOARD_Z - 0.07));
-    bg.setAttribute('color', '#3d1a78');
-    bg.setAttribute('opacity', 0.95);
-    boardRoot.appendChild(bg);
-
-    // Slot cylinders
-    for (var row = 0; row < ROWS; row++) {
+    gameBoard.innerHTML = '';
+    // Rows rendered top-to-bottom: highest index = top of visual board
+    for (var row = ROWS - 1; row >= 0; row--) {
       for (var col = 0; col < COLS; col++) {
-        var slot = document.createElement('a-cylinder');
-        slot.setAttribute('radius', 0.4);
-        slot.setAttribute('height', 0.15);
-        slot.setAttribute('segments-radial', 24);
-        slot.setAttribute('color', '#0d0617');
-        slot.setAttribute('opacity', 0.9);
-        slot.setAttribute('transparent', 'true');
-        slot.setAttribute('rotation', '90 0 0');
-
-        var x = BOARD_ORIGIN_X + col * CELL_W;
-        var y = BOARD_ORIGIN_Y + row * CELL_H;
-        slot.setAttribute('position', x + ' ' + y + ' ' + BOARD_Z);
-        slot.setAttribute('data-col', col);
-        slot.setAttribute('data-row', row);
-        slot.setAttribute('class', 'slot-piece');
-        slot.setAttribute('id', 'slot-' + col + '-' + row);
-
-        boardRoot.appendChild(slot);
+        var cell = document.createElement('div');
+        cell.className = 'slot-2d';
+        cell.id = 'slot-' + col + '-' + row;
+        cell.setAttribute('data-col', col);
+        cell.addEventListener('click', (function (c) {
+          return function () { handleColumnClick(c); };
+        }(col)));
+        gameBoard.appendChild(cell);
       }
-    }
-
-    // Column hit zones — invisible tall boxes above each column
-    for (var c = 0; c < COLS; c++) {
-      var hitZone = document.createElement('a-box');
-      var hx = BOARD_ORIGIN_X + c * CELL_W;
-      var hy = 0; // vertically centred on board
-      hitZone.setAttribute('width', CELL_W * 0.9);
-      hitZone.setAttribute('height', ROWS * CELL_H + 0.5);
-      hitZone.setAttribute('depth', 0.5);
-      hitZone.setAttribute('position', hx + ' ' + hy + ' ' + BOARD_Z);
-      hitZone.setAttribute('opacity', 0);
-      hitZone.setAttribute('transparent', 'true');
-      hitZone.setAttribute('class', 'col-hit');
-      hitZone.setAttribute('data-col', c);
-      hitZone.setAttribute('id', 'col-hit-' + c);
-
-      hitZone.addEventListener('click', (function (col) {
-        return function () {
-          handleColumnClick(col);
-        };
-      }(c)));
-
-      boardRoot.appendChild(hitZone);
     }
   }
 
@@ -278,20 +226,8 @@
         var piece = board[idx];
         var slotEl = document.getElementById('slot-' + col + '-' + row);
         if (!slotEl) continue;
-
-        if (piece === 1) {
-          slotEl.setAttribute('color', '#e63946');
-          slotEl.setAttribute('opacity', 1);
-          slotEl.setAttribute('transparent', 'false');
-        } else if (piece === 2) {
-          slotEl.setAttribute('color', '#ffd60a');
-          slotEl.setAttribute('opacity', 1);
-          slotEl.setAttribute('transparent', 'false');
-        } else {
-          slotEl.setAttribute('color', '#222222');
-          slotEl.setAttribute('opacity', 0.75);
-          slotEl.setAttribute('transparent', 'true');
-        }
+        slotEl.classList.toggle('red',    piece === 1);
+        slotEl.classList.toggle('yellow', piece === 2);
       }
     }
   }

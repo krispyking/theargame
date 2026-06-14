@@ -207,7 +207,36 @@ button:active { transform: translateY(0); }
   font-style: italic;
 }
 
+/* ── 2D Game Board ── */
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: clamp(5px, 1.4vw, 10px);
+  padding: clamp(10px, 2vw, 18px);
+  background: rgba(61, 26, 120, 0.92);
+  border-radius: 18px;
+  width: min(490px, 92vw);
+  pointer-events: all;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(199,125,255,0.15);
+  margin-top: 56px;
+}
+
+.slot-2d {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: #0d0617;
+  border: 2px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s, box-shadow 0.12s;
+}
+.slot-2d:hover { background: #1e0d35; transform: scale(1.08); }
+.slot-2d.red    { background: #e63946; border-color: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(230,57,70,0.5); }
+.slot-2d.yellow { background: #ffd60a; border-color: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(255,214,10,0.4); }
+
 @media (max-width: 480px) {
   .panel { padding: 28px 22px; border-radius: 18px; }
   .panel h1 { font-size: 1.1rem; }
+  #game-board { margin-top: 48px; }
 }
