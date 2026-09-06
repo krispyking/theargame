@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>TheARgame — TAG Blocks Prototype</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0020;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #header {
+      width: 100%;
+      padding: 14px 20px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.4);
+      position: relative;
+      z-index: 10;
+    }
+    #logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    #logo em { color: #c77dff; font-style: normal; }
+    #location {
+      font-size: 11px;
+      color: #c77dff;
+      text-align: right;
+      line-height: 1.3;
+    }
+    #scene {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #landmark {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+    /* Man Mo Temple silhouette built with CSS */
+    #temple-bg {
+      width: 100%;
+      height: 220px;
+      background: linear-gradient(180deg, #1a0a3e 0%, #2d1060 60%, #3d1a80 100%);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+    }
+    #temple-svg {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      opacity: 0.85;
+    }
+    #tap-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    #tap-hint .big { font-size: 36px; }
+    #tap-hint .small { font-size: 13px; color: #c77dff; margin-top: 4px; }
+    #tower-area {
+      width: 100%;
+      max-width: 480px;
+      height: 220px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(13,0,32,0) 0%, rgba(13,0,32,0.95) 100%);
+      overflow: hidden;
+    }
+    #tower-wrap {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 3px;
+      padding-bottom: 10px;
+    }
+    .block {
+      width: 60px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+      animation: blockDrop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      letter-spacing: 0.5px;
+    }
+    @keyframes blockDrop {
+      from { transform: translateY(-30px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    #hud {
+      width: 100%;
+      max-width: 480px;
+      padding: 10px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.3);
+    }
+    #score-wrap { text-align: left; }
+    #score-label { font-size: 10px; color: #9b8ab8; text-transform: uppercase; letter-spacing: 0.5px; }
+    #score { font-size: 28px; font-weight: 800; color: #c77dff; }
+    #meter-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    #meter-label { font-size: 9px; color: #9b8ab8; text-transform: uppercase; letter-spacing: 0.5px; }
+    #meter-bar-bg {
+      width: 12px;
+      height: 80px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+    #meter-bar-fill {
+      width: 100%;
+      background: linear-gradient(0deg, #c77dff, #ff6b6b);
+      transition: height 0.3s ease;
+      border-radius: 6px;
+    }
+    #players-wrap { text-align: right; }
+    #players-label { font-size: 10px; color: #9b8ab8; text-transform: uppercase; letter-spacing: 0.5px; }
+    #current-player { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    #player-dots {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      margin-top: 5px;
+    }
+    .pdot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 0.5;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .pdot.active { opacity: 1; transform: scale(1.3); }
+    #crash-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+      padding: 30px;
+    }
+    #crash-overlay.show { display: flex; }
+    #crash-emoji { font-size: 64px; animation: shake 0.5s ease; }
+    @keyframes shake {
+      0%,100% { transform: rotate(0deg); }
+      20% { transform: rotate(-10deg) scale(1.2); }
+      40% { transform: rotate(10deg) scale(1.3); }
+      60% { transform: rotate(-8deg) scale(1.1); }
+      80% { transform: rotate(6deg); }
+    }
+    #crash-title { font-size: 32px; font-weight: 800; color: #ff6b6b; }
+    #crash-sub { font-size: 16px; color: #c77dff; }
+    #crash-scores {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px 24px;
+      min-width: 220px;
+    }
+    .crash-score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .crash-score-row:last-child { border-bottom: none; }
+    .crash-score-row .pts { font-weight: 700; color: #c77dff; }
+    .winner-row .name { color: #ffd700; }
+    .winner-row .pts { color: #ffd700; }
+    #btn-play-again {
+      background: #c77dff;
+      color: #0d0020;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    #bottom-note {
+      font-size: 11px;
+      color: #6b5b80;
+      padding: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="logo">the<em>AR</em>game</div>
+  <div id="location">📍 Man Mo Temple<br>Hong Kong Island</div>
+</div>
+
+<div id="scene">
+  <!-- Temple silhouette tap zone -->
+  <div id="temple-bg" onclick="placeBlock(event)">
+    <svg id="temple-svg" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+      <!-- Man Mo Temple silhouette (simplified) -->
+      <g fill="#1a0050" opacity="0.95">
+        <!-- Main roof -->
+        <polygon points="50,180 350,180 350,130 200,90 50,130"/>
+        <!-- Upper roof ridge -->
+        <polygon points="80,130 320,130 300,100 200,70 100,100"/>
+        <!-- Roof tips (upturned eaves) -->
+        <polygon points="50,130 80,130 60,110"/>
+        <polygon points="350,130 320,130 340,110"/>
+        <!-- Incense coils hint -->
+        <ellipse cx="200" cy="75" rx="20" ry="6" opacity="0.5"/>
+        <!-- Columns -->
+        <rect x="90" y="130" width="18" height="50"/>
+        <rect x="145" y="130" width="18" height="50"/>
+        <rect x="237" y="130" width="18" height="50"/>
+        <rect x="292" y="130" width="18" height="50"/>
+        <!-- Central door -->
+        <rect x="165" y="140" width="70" height="40" rx="4"/>
+        <!-- Door arch -->
+        <ellipse cx="200" cy="140" rx="35" ry="15"/>
+        <!-- Lanterns hint -->
+        <ellipse cx="150" cy="115" rx="8" ry="10" fill="#c77dff" opacity="0.4"/>
+        <ellipse cx="250" cy="115" rx="8" ry="10" fill="#c77dff" opacity="0.4"/>
+      </g>
+      <!-- Street level -->
+      <rect x="0" y="175" width="400" height="5" fill="#1a0050"/>
+    </svg>
+    <div id="tap-hint">
+      <div class="big">👆</div>
+      <div class="small">Tap to place your TAG block</div>
+    </div>
+  </div>
+
+  <!-- Tower grows upward above the temple -->
+  <div id="tower-area">
+    <div id="tower-wrap"></div>
+  </div>
+</div>
+
+<div id="hud">
+  <div id="score-wrap">
+    <div id="score-label">Your score</div>
+    <div id="score">0</div>
+  </div>
+  <div id="meter-wrap">
+    <div id="meter-label">Tower</div>
+    <div id="meter-bar-bg">
+      <div id="meter-bar-fill" style="height:0%"></div>
+    </div>
+  </div>
+  <div id="players-wrap">
+    <div id="players-label">Playing as</div>
+    <div id="current-player"></div>
+    <div id="player-dots"></div>
+  </div>
+</div>
+
+<div id="bottom-note">
+  ⚡ Place blocks to score — but if the tower crashes, points cascade to the crasher!
+</div>
+
+<!-- Crash overlay -->
+<div id="crash-overlay">
+  <div id="crash-emoji">💥</div>
+  <div id="crash-title">TOWER CRASH!</div>
+  <div id="crash-sub" id="crash-sub"></div>
+  <div id="crash-scores"></div>
+  <button id="btn-play-again" onclick="resetGame()">Play Again</button>
+</div>
+
+<script>
+  const PLAYERS = [
+    { name: 'You', color: '#c77dff', label: 'YOU' },
+    { name: 'Mei',  color: '#ff6b6b', label: 'MEI' },
+    { name: 'Jake', color: '#4cc9f0', label: 'JAKE' },
+    { name: 'Sara', color: '#ffd60a', label: 'SARA' },
+  ];
+  const CRASH_HEIGHT = 12; // blocks before crash
+
+  let state = {
+    blocks: [],
+    scores: [0, 0, 0, 0],
+    currentPlayer: 0,
+    crashed: false,
+  };
+
+  function init() {
+    // Render player dots
+    const dots = document.getElementById('player-dots');
+    dots.innerHTML = PLAYERS.map((p,i) =>
+      `<div class="pdot" id="dot-${i}" style="background:${p.color}"></div>`
+    ).join('');
+    updateHUD();
+  }
+
+  function updateHUD() {
+    const p = PLAYERS[state.currentPlayer];
+    document.getElementById('current-player').textContent = p.name;
+    document.getElementById('current-player').style.color = p.color;
+    document.getElementById('score').textContent = state.scores[0];
+
+    // Tower meter
+    const pct = Math.min(100, (state.blocks.length / CRASH_HEIGHT) * 100);
+    document.getElementById('meter-bar-fill').style.height = pct + '%';
+
+    // Active dot
+    PLAYERS.forEach((_,i) => {
+      const d = document.getElementById('dot-' + i);
+      if (d) d.classList.toggle('active', i === state.currentPlayer);
+    });
+  }
+
+  function placeBlock(e) {
+    if (state.crashed) return;
+
+    // Hide hint after first tap
+    const hint = document.getElementById('tap-hint');
+    if (hint) hint.style.opacity = '0';
+
+    const p = PLAYERS[state.currentPlayer];
+    const blockIndex = state.blocks.length;
+
+    // Add block to state
+    state.blocks.push({ player: state.currentPlayer, color: p.color });
+    state.scores[state.currentPlayer] += 10 + blockIndex; // more points for later blocks
+
+    // Render block
+    const wrap = document.getElementById('tower-wrap');
+    const div = document.createElement('div');
+    div.className = 'block';
+    div.style.background = p.color;
+    div.style.width = Math.max(30, 70 - blockIndex * 2) + 'px';
+    div.textContent = p.label;
+    wrap.appendChild(div);
+
+    updateHUD();
+
+    // Check crash
+    if (state.blocks.length >= CRASH_HEIGHT) {
+      setTimeout(triggerCrash, 400);
+    } else {
+      // Advance to next player (simulated AI turn after 0.8s for non-human players)
+      advancePlayer();
+    }
+  }
+
+  function advancePlayer() {
+    state.currentPlayer = (state.currentPlayer + 1) % PLAYERS.length;
+    updateHUD();
+    // Simulate AI move for players 1-3
+    if (state.currentPlayer !== 0 && !state.crashed) {
+      setTimeout(simulateAIMove, 600 + Math.random() * 600);
+    }
+  }
+
+  function simulateAIMove() {
+    if (state.crashed || state.blocks.length >= CRASH_HEIGHT) return;
+    placeBlock(null);
+  }
+
+  function triggerCrash() {
+    state.crashed = true;
+    // Crasher (last player to place) gets a bonus
+    const crasher = state.blocks[state.blocks.length - 1].player;
+    const bonus = state.blocks.length * 15;
+    state.scores[crasher] += bonus;
+
+    // Sort scores
+    const ranked = PLAYERS.map((p,i) => ({ name: p.name, score: state.scores[i], color: p.color }))
+      .sort((a,b) => b.score - a.score);
+
+    // Build crash scores display
+    const overlay = document.getElementById('crash-overlay');
+    document.getElementById('crash-sub').textContent =
+      PLAYERS[crasher].name + ' caused the crash — cascade bonus: +' + bonus + ' pts!';
+
+    const scoresDiv = document.getElementById('crash-scores');
+    scoresDiv.innerHTML = ranked.map((r,i) =>
+      `<div class="crash-score-row ${i===0?'winner-row':''}">
+        <span class="name">${i===0?'🏆 ':''}${r.name}</span>
+        <span class="pts">${r.score} pts</span>
+      </div>`
+    ).join('');
+
+    overlay.classList.add('show');
+  }
+
+  function resetGame() {
+    state = { blocks: [], scores: [0,0,0,0], currentPlayer: 0, crashed: false };
+    document.getElementById('tower-wrap').innerHTML = '';
+    document.getElementById('crash-overlay').classList.remove('show');
+    document.getElementById('tap-hint').style.opacity = '1';
+    updateHUD();
+  }
+
+  init();
+</script>
+</body>
+</html>
